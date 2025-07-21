@@ -1,0 +1,67 @@
+auths:
+  f5_auth:
+    version: 2
+    community: public
+
+modules:
+  f5_bigip:
+    walk:
+      - F5-BIGIP-SYSTEM-MIB::sysUpTime
+      - F5-BIGIP-SYSTEM-MIB::sysCpuUsage
+      - F5-BIGIP-SYSTEM-MIB::sysMemoryUsed
+      - F5-BIGIP-LOCAL-MIB::ltmPoolStatAvail
+      - F5-BIGIP-LOCAL-MIB::ltmVirtualServStatTotConns
+      - F5-BIGIP-LOCAL-MIB::ltmPoolName
+      # Ajout des OIDs supplémentaires pour la surveillance des performances et de la connectivité
+      - F5-BIGIP-SYSTEM-MIB::sysStatHttpRequests
+      - F5-BIGIP-SYSTEM-MIB::sysStatClientBytesIn
+      - F5-BIGIP-SYSTEM-MIB::sysStatClientBytesOut
+      - F5-BIGIP-SYSTEM-MIB::sysStatServerBytesIn
+      - F5-BIGIP-SYSTEM-MIB::sysStatServerBytesOut
+      - F5-BIGIP-SYSTEM-MIB::sysClientsslStatToNativeConns
+      - F5-BIGIP-SYSTEM-MIB::sysClientsslStatTotCompatConns
+      - F5-BIGIP-SYSTEM-MIB::sysServersslStatTotNativeConns
+      - F5-BIGIP-SYSTEM-MIB::sysServersslStatTotCompatConns
+      - F5-BIGIP-SYSTEM-MIB::sysMultiHostCpuUser5s
+      - F5-BIGIP-SYSTEM-MIB::sysMultiHostCpuSystem5s
+      - F5-BIGIP-SYSTEM-MIB::sysMultiHostCpuUsageRatio5s
+      - F5-BIGIP-SYSTEM-MIB::sysWebAccelerationStatCacheHits
+      - F5-BIGIP-SYSTEM-MIB::sysWebAccelerationStatCacheMisses
+      - F5-BIGIP-SYSTEM-MIB::sysWebAccelerationStatCacheEvictions
+      - F5-BIGIP-SYSTEM-MIB::sysStatClientCurConns
+      - F5-BIGIP-SYSTEM-MIB::sysStatServerCurConns
+
+    max_repetitions: 25
+    retries: 3
+    timeout: 5s
+    allow_nonincreasing_oids: false
+    use_unconnected_udp_socket: false
+
+    lookups:
+      - source_indexes: [bsnDot11EssIndex]
+        lookup: bsnDot11EssSsid
+        drop_source_indexes: false
+
+    overrides:
+      metricName:
+        ignore: false
+        help: "Description of the metric"
+        name: "customMetricName"
+        regex_extracts:
+          Temp:
+            - regex: '(.*)'
+              value: '$1'
+        scale: 1.0
+        type: DisplayString
+
+    filters:
+      static:
+        - targets:
+            - bsnDot11EssSsid
+          indices: ["2", "3", "4"]
+
+      dynamic:
+        - oid: 1.3.6.1.2.1.2.2.1.7
+          targets:
+            - "1.3.6.1.2.1.2.2.1.4"
+          values: ["1", "2"]
